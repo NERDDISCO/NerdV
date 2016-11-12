@@ -1,0 +1,30 @@
+{
+  "name": "NerdV",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tim Pietrusky <timpietrusky@gmail.com> (http://timpietrusky.com/)",
+  "license": "MIT",
+  "dependencies": {
+    "dmx": "0.0.4",
+    "express": "latest",
+    "node-fadecandy": "^2.0.1",
+    "nodejs-websocket": "^1.7.0"
+  },
+  "devDependencies": {
+    "gulp": "latest",
+    "gulp-nodemon": "latest",
+    "gulp-watch": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TimPietrusky/NerdV.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NERDDISCO/NerdV/issues"
+  },
+  "homepage": "https://github.com/NERDDISCO/NerdV"
+}

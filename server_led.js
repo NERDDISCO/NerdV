@@ -6,6 +6,8 @@ let ws = require("nodejs-websocket");
 let ndFC = new FadeCandy();
 let isFadeCandyReady = false;
 
+let port = 1337;
+
 let config = {
   stripes : 8,
   led : 30,
@@ -17,19 +19,19 @@ function convertData(input, config) {
   let fill = new Array((config.max_led - config.led) * 3);
   fill.fill(0);
 
-  // console.log('input: ', input.length);
+  console.log('input: ', input.length);
 
   let tmp;
   let start_input = 0;
   let start_output = 0;
 
-  // console.log('fill:', fill.length);
+  console.log('fill:', fill.length);
 
   for (var i = 0; i < config.stripes; i++) {
     let end_input = ((i + 1) * config.led) * 3;
 
 
-    // console.log('from', start_input, 'to', end_input);
+    console.log('from', start_input, 'to', end_input);
     tmp = input.slice(start_input, end_input);
 
     result = result.concat(tmp);
@@ -38,9 +40,7 @@ function convertData(input, config) {
     start_input = end_input;
   }
 
-  // console.log(result.length);
-
-return result;
+  return result;
 
 }
 
@@ -62,9 +62,6 @@ ndFC.on(FadeCandy.events.READY, function () {
 
     console.log('FadeCandy.events.READY')
 
-    // see the config schema
-    console.log(ndFC.Configuration.schema)
-
     // create default color look up table
     ndFC.clut.create()
 
@@ -80,8 +77,6 @@ ndFC.on(FadeCandy.events.READY, function () {
 })
 
 ndFC.on(FadeCandy.events.COLOR_LUT_READY, function () {
-    console.log('FaceCandy says color lut ready');
-
     isFadeCandyReady = true;
 
     // Turn off every pixel
@@ -101,9 +96,13 @@ var server = ws.createServer(function (conn) {
 
         data = JSON.parse(data);
 
-        data = convertData(data, config);
+        console.log(data.length);
 
-        let pixels = new Uint8Array(data);
+        let converted_data = convertData(data, config);
+
+        console.log(converted_data.length);
+
+        let pixels = new Uint8Array(converted_data);
 
         if (isFadeCandyReady) {
           ndFC.send(pixels);
@@ -115,4 +114,4 @@ var server = ws.createServer(function (conn) {
         console.log("Connection closed")
     })
 
-}).listen(1337);
+}).listen(port);

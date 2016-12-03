@@ -2,10 +2,11 @@
 
 const FadeCandy = require('node-fadecandy');
 
-let ws = require("nodejs-websocket");
+let ws = require('nodejs-websocket');
 let ndFC = new FadeCandy();
 let isFadeCandyReady = false;
 
+let debug = true;
 let port = 1337;
 
 let config = {
@@ -14,24 +15,35 @@ let config = {
   max_led : 64
 }
 
+
+
+/**
+ * Fill the gabs from input with 0 using the config
+ */
 function convertData(input, config) {
   let result = [];
   let fill = new Array((config.max_led - config.led) * 3);
   fill.fill(0);
 
-  console.log('input: ', input.length);
+  if (debug) {
+    console.log('input: ', input.length);
+  }
 
   let tmp;
   let start_input = 0;
   let start_output = 0;
 
-  console.log('fill:', fill.length);
+  if (debug) {
+    console.log('fill:', fill.length);
+  }
 
   for (var i = 0; i < config.stripes; i++) {
     let end_input = ((i + 1) * config.led) * 3;
 
+    if (debug) {
+      console.log('from', start_input, 'to', end_input);
+    }
 
-    console.log('from', start_input, 'to', end_input);
     tmp = input.slice(start_input, end_input);
 
     result = result.concat(tmp);
@@ -44,23 +56,18 @@ function convertData(input, config) {
 
 }
 
-// let test = [];
-// let pixels = 60;
-//
-// for (let pixel = 0; pixel < pixels; pixel++) {
-//         let i = 3 * pixel
-//
-//         test[i] = 255;
-//         test[i + 1] = 0;
-//         test[i + 2] = 0;
-// }
-
-//convertData(test, config);
 
 
+
+
+/**
+ * FadeCandy is ready
+ */
 ndFC.on(FadeCandy.events.READY, function () {
 
-    console.log('FadeCandy.events.READY')
+    if (debug) {
+      console.log('FadeCandy.events.READY');
+    }
 
     // create default color look up table
     ndFC.clut.create()
@@ -68,50 +75,60 @@ ndFC.on(FadeCandy.events.READY, function () {
     // set fadecandy led to manual mode
     ndFC.config.set(ndFC.Configuration.schema.LED_MODE, 1)
 
-    // blink that led
+    // Update the status LED
     let state = false
     setInterval(() => {
         state = !state;
         ndFC.config.set(ndFC.Configuration.schema.LED_STATUS, +state)
-    }, 100)
-})
+    }, 100);
+});
 
+
+
+
+
+/**
+ * FadeCandy Color_LUT is ready
+ */
 ndFC.on(FadeCandy.events.COLOR_LUT_READY, function () {
     isFadeCandyReady = true;
 
     // Turn off every pixel
-    let pixels = new Uint8Array(512 * 3);
+    let pixels = new Uint8Array(config.max_led * config.stripes * 3);
     pixels.fill(0);
     ndFC.send(pixels);
 });
 
 
 
-var server = ws.createServer(function (conn) {
 
-    console.log("New connection")
 
-    conn.on("text", function (data) {
-        console.log('nerdV - LED:', 'Receiving data');
+/**
+ * Create a WebSocket server
+ */
+let server = ws.createServer(function (conn) {
+
+    console.log('New connection');
+
+    conn.on('text', function (data) {
+        if (debug) {
+          console.log('nerdV - LED:', 'Receiving data');
+        }
 
         data = JSON.parse(data);
 
-        console.log(data.length);
-
         let converted_data = convertData(data, config);
-
-        console.log(converted_data.length);
-
         let pixels = new Uint8Array(converted_data);
 
+        // Send data when FadeCandy is ready
         if (isFadeCandyReady) {
           ndFC.send(pixels);
         }
 
     })
 
-    conn.on("close", function (code, reason) {
-        console.log("Connection closed")
-    })
+    conn.on('close', function (code, reason) {
+        console.log('Connection closed');
+    });
 
 }).listen(port);

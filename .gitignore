@@ -38,5 +38,4 @@ jspm_packages
 
 # Project specific
 tmp
-public/asset/js/NERDDISCO-NerdDrum.js
 .env

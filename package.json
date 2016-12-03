@@ -10,14 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "dmx": "0.0.4",
-    "express": "latest",
     "node-fadecandy": "^2.0.1",
     "nodejs-websocket": "^1.7.0"
-  },
-  "devDependencies": {
-    "gulp": "latest",
-    "gulp-nodemon": "latest",
-    "gulp-watch": "latest"
   },
   "repository": {
     "type": "git",

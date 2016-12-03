@@ -1,68 +1,104 @@
 'use strict';
 
 var DMX = require('DMX');
+let ndDMX = require('./ndDMX');
+let dmxTypes = require('./dmx_types');
+let ws = require('nodejs-websocket');
 
+let port = 1338;
+let debug = true;
 
-// @TODO: Create an abstraction
-let devices = {
-  'stairville-led-par-1' : {
-		channels: ['Dimmer', 'Strobe', 'R', 'G', 'B', 'W', 'Color Macro', 'Sound']
-	}
-}
+/*
+ * Configure the universe
+ */
+let universe = {
+    name : 'dotjs',
 
-let ndDMX = new DMX();
-
-// Define universes
-let universes = {
-  'talk': {
-
-    'output': {
-      'driver': 'enttec-usb-dmx-pro',
-      'device': '/dev/cu.usbserial-EN193448'
+    master : {
+      driver : 'enttec-usb-dmx-pro',
+      usb_device : '/dev/cu.usbserial-EN193448'
     },
 
-    // @TODO: Load the devices abstraction and use the channels as names
     slaves : {
       light1 : {
-        type : 'stairville-led-par-1',
-        // The first device gets address 0, the device has 8 channels, so the next device has address 7
-        address : 0
+        type : dmxTypes.TYPE_STAIRVILLE_LED_PAR,
+        address : 1
+      },
+
+      light2 : {
+        type : dmxTypes.TYPE_STAIRVILLE_LED_PAR,
+        address : 4
+      },
+
+      fogMaschine : {
+        type : dmxTypes.TYPE_STAIRVILLE_S_150,
+        address : 16
       }
     }
-
-  }
 };
 
-// Add universes
-for (var universe in universes) {
-  ndDMX.addUniverse(
-    universe,
-    universes[universe].output.driver,
-    universes[universe].output.device
-  )
-}
+// Initialize DMX
+let dmx_connector = new DMX();
 
-ndDMX.update('talk', { 0 : 255 });
+// Add universe for dotJS
+dmx_connector.addUniverse(
+  universe.name,
+  universe.master.driver,
+  universe.master.usb_device
+);
+
+// Reset every device at startup
+dmx_connector.updateAll(universe.name, 0);
 
 
-var ws = require("nodejs-websocket");
-var server = ws.createServer(function (conn) {
 
-    console.log("New connection")
+// Initialize NERDDISCO DMX helper
+let NERDDISCO_dmx = new ndDMX({ devices : universe.slaves });
 
-    conn.on("text", function (data) {
-        console.log(data)
 
-        data = JSON.parse(data);
+/*
+ * Testing
+ */
+let test_input = [
+  125, 0, 0,
+  0, 255, 50
+];
 
-        ndDMX.update('talk', { 2 : data[0] });
-        ndDMX.update('talk', { 3 : data[1] });
-        ndDMX.update('talk', { 4 : data[2] });
 
-    })
+/**
+ * Create a WebSocket server
+ */
+let server = ws.createServer(function (conn) {
 
-    conn.on("close", function (code, reason) {
-        console.log("Connection closed")
-    })
+    console.log('New connection');
 
-}).listen(1337);
+    // Receive data
+    conn.on('text', function (data) {
+      if (debug) {
+        console.log(data);
+      }
+
+      data = JSON.parse(data);
+
+      /*
+       * Update DMX devices
+       */
+      NERDDISCO_dmx.updateDevice(universe.slaves.light1, test_input.slice(0, 3));
+      NERDDISCO_dmx.updateDevice(universe.slaves.light2, test_input.slice(3, 6));
+      NERDDISCO_dmx.updateDevice(universe.slaves.fogMaschine, false);
+
+      if (debug) {
+        console.log(NERDDISCO_dmx.data);
+      }
+
+      // Update the universe
+      dmx_connector.update(universe.name, NERDDISCO_dmx.data);
+    });
+
+
+
+    conn.on('close', function (code, reason) {
+        console.log('Connection closed');
+    });
+
+}).listen(port);

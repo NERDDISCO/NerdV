@@ -1,24 +1,24 @@
 {
-  "name": "NerdV",
+  "name": "nerdV-FadeCandy",
   "version": "0.0.1",
-  "description": "",
-  "main": "server.js",
+  "description": "The child of NERDDISCO & modV to control a FadeCandy",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "Tim Pietrusky <timpietrusky@gmail.com> (http://timpietrusky.com/)",
   "license": "MIT",
   "dependencies": {
-    "dmx": "0.0.4",
     "node-fadecandy": "^2.0.1",
     "nodejs-websocket": "^1.7.0"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/TimPietrusky/NerdV.git"
+    "url": "git://github.com/TimPietrusky/nerdV-FadeCandy.git"
   },
   "bugs": {
-    "url": "https://github.com/NERDDISCO/NerdV/issues"
+    "url": "https://github.com/NERDDISCO/nerdV-FadeCandy/issues"
   },
-  "homepage": "https://github.com/NERDDISCO/NerdV"
+  "homepage": "https://github.com/NERDDISCO/nerdV-FadeCandy"
 }

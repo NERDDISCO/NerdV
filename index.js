@@ -81,6 +81,7 @@ ndFC.on(FadeCandy.events.READY, function () {
         state = !state;
         ndFC.config.set(ndFC.Configuration.schema.LED_STATUS, +state)
     }, 100);
+
 });
 
 
@@ -106,11 +107,11 @@ ndFC.on(FadeCandy.events.COLOR_LUT_READY, function () {
 /**
  * Create a WebSocket server
  */
-let server = ws.createServer(function (conn) {
+let server = ws.createServer(function (connection) {
 
     console.log('New connection');
 
-    conn.on('text', function (data) {
+    connection.on('text', function (data) {
         if (debug) {
           console.log('nerdV - LED:', 'Receiving data');
         }
@@ -127,8 +128,19 @@ let server = ws.createServer(function (conn) {
 
     })
 
-    conn.on('close', function (code, reason) {
-        console.log('Connection closed');
+
+
+    connection.on('close', function (code, reason) {
+      console.log('Connection closed');
+    });
+
+
+
+    connection.on('error', function (error) {
+      if (error.code !== 'ECONNRESET') {
+        // Ignore ECONNRESET and re throw anything else
+        throw err;
+      }
     });
 
 }).listen(port);
